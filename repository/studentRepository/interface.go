@@ -2,6 +2,7 @@ package studentsRepository
 
 import "sms/models"
 
+//go:generate mockgen -destination=../../mocks/student_repo_mock.go -package=mocks -source=interface.go
 type StudentRepositoryI interface {
 	GetAllStudentsOfClass(classID string, semester int) ([]models.Students, error)
 	AddStudent(uuid, rollNumber, name, classID string, semester int) error

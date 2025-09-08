@@ -1,8 +1,9 @@
 package services
 
 import (
-	gradeRepository "sms/respository/gradesRepository"
-	studentsRepository "sms/respository/studentRepository"
+	"errors"
+	gradeRepository "sms/repository/gradesRepository"
+	studentsRepository "sms/repository/studentRepository"
 )
 
 type GradeService struct {
@@ -135,16 +136,17 @@ func (gs *GradeService) GetTopThree(classID string, semester int) ([]GradeRepons
 }
 
 func (gs *GradeService) AddGrades(studentID string, subjectID string, Grade int, semester int) error {
-	// student := gs.sr.GetStudentByID(studentID)
-
-	// if student == nil {
-	// 	return errors.New("Invalid Student ID")
-	// }
-
-	// get subject
-	// if subject == nil {
-	// 	return errors.New("Invalid Subject ID")
-	// }
+	if Grade < 0 {
+		return errors.New("grade can't be negative")
+	}
 	err := gs.gr.AddGrades(studentID, subjectID, Grade, semester)
+	return err
+}
+
+func (gs *GradeService) UpdateGrade(studentID string, subjectID string, newGrade int) error {
+	if newGrade < 0 {
+		return errors.New("grade can't be negative")
+	}
+	err := gs.gr.UpdateGrade(studentID, subjectID, newGrade)
 	return err
 }

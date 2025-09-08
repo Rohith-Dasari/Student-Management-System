@@ -3,7 +3,9 @@ module sms
 go 1.24.5
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	golang.org/x/crypto v0.41.0
 	modernc.org/sqlite v1.38.2

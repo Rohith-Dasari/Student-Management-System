@@ -6,7 +6,7 @@ import (
 	"net/mail"
 	"regexp"
 	"sms/models"
-	userrepository "sms/respository/userRepository"
+	userrepository "sms/repository/userRepository"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"

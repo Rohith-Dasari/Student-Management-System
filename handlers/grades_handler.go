@@ -16,11 +16,17 @@ type AddGradeRequest struct {
 	Grade     int    `json:"grade"`
 }
 
-type GradeHandler struct {
-	gs *services.GradeService
+type UpdateGrade struct {
+	StudentID string `json:"studentID"`
+	SubjectID string `json:"subjectID"`
+	NewGrade  int    `json:"new_grade"`
 }
 
-func NewGradeHandler(gs *services.GradeService) *GradeHandler {
+type GradeHandler struct {
+	gs services.GradeServiceI
+}
+
+func NewGradeHandler(gs services.GradeServiceI) *GradeHandler {
 	return &GradeHandler{gs}
 }
 
@@ -106,4 +112,27 @@ func (gh *GradeHandler) AddGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.CustomError(w, http.StatusCreated, "grade successfully added")
+}
+
+func (gh *GradeHandler) UpdateGrade(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+	role, err := middleware.GetUserRole(r.Context())
+	if err != nil || role != "faculty" {
+		utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+		return
+	}
+	var req UpdateGrade
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	err = gh.gs.UpdateGrade(req.StudentID, req.SubjectID, req.NewGrade)
+	if err != nil {
+		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	utils.CustomError(w, http.StatusCreated, "grade updated added")
 }

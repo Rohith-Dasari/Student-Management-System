@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sms/models"
-	studentRepo "sms/respository/studentRepository"
+	studentRepo "sms/repository/studentRepository"
 
 	"github.com/google/uuid"
 )
@@ -61,8 +61,3 @@ func (ss *StudentService) UpdateStudent(studentID, name, rollnumber, classID str
 	err := ss.sr.UpdateStudent(studentID, student.Name, student.RollNumber, student.ClassID, student.Semester)
 	return err
 }
-
-// func (ss *StudentService) GetStudentsByClassID(classID string) {
-// 	//get students of that class
-
-// }

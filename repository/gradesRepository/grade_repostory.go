@@ -35,3 +35,9 @@ func (gr *GradeRepo) AddGrades(studentID string, subjectID string, Grade int, se
 
 	return err
 }
+
+func (gr *GradeRepo) UpdateGrade(studentID string, subjectID string, newGrade int) error {
+	stmt := `update grades set Grade=? where StudentID=? and SubjectID=?`
+	_, err := gr.db.Exec(stmt, newGrade, studentID, subjectID)
+	return err
+}

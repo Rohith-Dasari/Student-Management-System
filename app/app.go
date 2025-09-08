@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"sms/handlers"
 	"sms/middleware"
-	gradeRepository "sms/respository/gradesRepository"
-	studentsRepository "sms/respository/studentRepository"
-	userrepository "sms/respository/userRepository"
+	gradeRepository "sms/repository/gradesRepository"
+	studentsRepository "sms/repository/studentRepository"
+	userrepository "sms/repository/userRepository"
 	"sms/services"
 
 	_ "modernc.org/sqlite"
@@ -44,18 +44,23 @@ func SetupServer(db *sql.DB) *http.ServeMux {
 	mux.Handle("POST /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.AddGrade)))
 	mux.Handle("GET /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.GetAverageOfClass)))
 	mux.Handle("GET /api/v1/grades/toppers", middleware.JWTAuth(http.HandlerFunc(gradeHandler.GetTopThree)))
+	mux.Handle("PATCH /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.UpdateGrade)))
 	return mux
 }
 
-func InitDB() *sql.DB {
-	db, err := sql.Open("sqlite", "sms.db")
+func InitDBWithDSN(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		log.Fatal("Could not open db")
+		return nil, err
 	}
-	return db
+	return db, nil
 }
+
 func Start() {
-	DB := InitDB()
+	DB, error := InitDBWithDSN("sms.db")
+	if error != nil {
+		log.Fatal(error.Error())
+	}
 	mux := SetupServer(DB)
 
 	// Start server

@@ -110,20 +110,11 @@ func TestStudentHandler_AddStudent(t *testing.T) {
 }
 
 func TestStudentHandler_UpdateStudent(t *testing.T) {
-	//ctrl creation
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	//handler creation
-	mockStudentService := mocks.NewMockStudentServiceI(ctrl)
-	handler := handlers.NewStudentHandler(mockStudentService)
-
-	//test case def
 	tests := []struct {
 		name           string
 		body           any
 		expectedStatus int
-		mockService    func()
+		mockService    func(*mocks.MockStudentServiceI)
 		role           string
 		studentID      string
 	}{
@@ -137,7 +128,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 				"classID":     "1",
 				"semester":    7,
 			},
-			mockService: func() {
+			mockService: func(mockStudentService *mocks.MockStudentServiceI) {
 				mockStudentService.EXPECT().UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			studentID: "1",
@@ -152,8 +143,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 				"classID":     "1",
 				"semester":    7,
 			},
-			mockService: func() {
-				// mockStudentService.EXPECT().UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			mockService: func(mockStudentService *mocks.MockStudentServiceI) {
 			},
 			studentID: "1",
 		},
@@ -167,8 +157,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 				"classID":     "1",
 				"semester":    7,
 			},
-			mockService: func() {
-				mockStudentService.EXPECT().UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			mockService: func(mockStudentService *mocks.MockStudentServiceI) {
 			},
 			studentID: "",
 		},
@@ -181,8 +170,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 				"classID":     7,
 				"semester":    "invalid",
 			},
-			mockService: func() {
-				// mockStudentService.EXPECT().UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			mockService: func(mockStudentService *mocks.MockStudentServiceI) {
 			},
 			studentID: "1",
 		},
@@ -196,8 +184,10 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 				"classID":     "1",
 				"semester":    7,
 			},
-			mockService: func() {
-				mockStudentService.EXPECT().UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(errors.New("service error"))
+			mockService: func(mockStudentService *mocks.MockStudentServiceI) {
+				mockStudentService.EXPECT().
+					UpdateStudent(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(errors.New("service error"))
 			},
 			studentID: "1",
 		},
@@ -205,22 +195,31 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			mockStudentService := mocks.NewMockStudentServiceI(ctrl)
+			handler := handlers.NewStudentHandler(mockStudentService)
+
 			var reqBody []byte
 			if s, ok := tt.body.(string); ok {
 				reqBody = []byte(s)
 			} else {
 				reqBody, _ = json.Marshal(tt.body)
 			}
+
 			req := httptest.NewRequest(http.MethodPatch, "/students/"+tt.studentID, bytes.NewReader(reqBody))
 			req = req.WithContext(AddUserToContext(req.Context(), tt.role))
-			tt.mockService()
+
+			req.SetPathValue("studentID", tt.studentID)
+
+			tt.mockService(mockStudentService)
 			rr := httptest.NewRecorder()
 
 			handler.UpdateStudent(rr, req)
+
 			if rr.Code != tt.expectedStatus {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, rr.Code)
 			}
 		})
-
 	}
 }

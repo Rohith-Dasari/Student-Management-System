@@ -11,7 +11,7 @@ import (
 	"sms/models"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestAuthHandler_Login(t *testing.T) {
@@ -81,6 +81,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(tt.method, "/login", bytes.NewReader(bodyBytes))
+			req.Header.Set("Content-Type", "application/json")
+
 			w := httptest.NewRecorder()
 
 			mockService := mocks.NewMockAuthServiceI(ctrl)
@@ -89,6 +91,8 @@ func TestAuthHandler_Login(t *testing.T) {
 			handler := handlers.NewAuthHandler(mockService)
 
 			handler.Login(w, req)
+			// res:=w.Result()
+			// defer res.Body.Close()
 
 			if w.Code != tt.expectedStatus {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)

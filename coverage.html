@@ -1,0 +1,470 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handlers: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">sms/handlers/auth_handler.go (86.4%)</option>
+				
+				<option value="file1">sms/handlers/grades_handler.go (22.7%)</option>
+				
+				<option value="file2">sms/handlers/students_handler.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "net/http"
+        "sms/services"
+        "sms/utils"
+)
+
+type AuthHandler struct {
+        as services.AuthServiceI
+}
+
+func NewAuthHandler(as services.AuthServiceI) *AuthHandler <span class="cov8" title="1">{
+        return &amp;AuthHandler{as: as}
+}</span>
+
+type LoginRequest struct {
+        Email    string `json:"email"`
+        Password string `json:"password"`
+}
+
+type LoginResponse struct {
+        Token string `json:"token"`
+}
+type User struct {
+        ID   string `json:"id"`
+        Name string `json:"name"`
+        Role string `json:"role"`
+}
+
+type SignupRequest struct {
+        Name     string `json:"name"`
+        Email    string `json:"email"`
+        Password string `json:"password"`
+}
+
+type SignupResponse struct {
+        Token string `json:"token"`
+}
+
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Method != http.MethodPost </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "invalid method")
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req LoginRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := h.as.ValidateLogin(r.Context(), req.Email, req.Password)
+        if err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusUnauthorized, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, 409, "Failed to generate token")
+                return
+        }</span>
+
+        <span class="cov8" title="1">res := LoginResponse{
+                Token: token,
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        if err := json.NewEncoder(w).Encode(res); err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, 409, "Failed to Encode Response")
+        }</span>
+}
+
+func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Method != http.MethodPost </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "invalid method")
+                return
+        }</span>
+
+        <span class="cov8" title="1">var req SignupRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+        <span class="cov8" title="1">if req.Name == "" || req.Email == "" || req.Password == "" </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, "name, email and password can't be empty ")
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := h.as.Signup(r.Context(), req.Name, req.Email, req.Password)
+        if err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+
+        <span class="cov8" title="1">token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, 409, "Failed to generate token")
+                return
+        }</span>
+
+        <span class="cov8" title="1">res := SignupResponse{
+                Token: token,
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+        if err := json.NewEncoder(w).Encode(res); err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, 409, "Failed to Encode Response")
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "net/http"
+        "sms/middleware"
+        "sms/services"
+        "sms/utils"
+        "strconv"
+)
+
+type AddGradeRequest struct {
+        StudentID string `json:"studentID"`
+        SubjectID string `json:"subjectID"`
+        Semester  int    `json:"semester"`
+        Grade     int    `json:"grade"`
+}
+
+type UpdateGrade struct {
+        StudentID string `json:"studentID"`
+        SubjectID string `json:"subjectID"`
+        NewGrade  int    `json:"new_grade"`
+}
+
+type GradeHandler struct {
+        gs services.GradeServiceI
+}
+
+func NewGradeHandler(gs services.GradeServiceI) *GradeHandler <span class="cov8" title="1">{
+        return &amp;GradeHandler{gs}
+}</span>
+
+func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        if r.Method != http.MethodGet </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+                return
+        }</span>
+        <span class="cov0" title="0">role, err := middleware.GetUserRole(r.Context())
+        if err != nil || role != "faculty" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+                return
+        }</span>
+        <span class="cov0" title="0">query := r.URL.Query()
+        classID := query.Get("classID")
+        semester, err := strconv.Atoi(query.Get("semester"))
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "semester must be a number")
+                return
+        }</span>
+        <span class="cov0" title="0">if classID == "" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid classID")
+                return
+        }</span>
+
+        <span class="cov0" title="0">data, err := gh.gs.GetAverageOfClass(classID, semester)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">utils.SendCustomResponse(w, http.StatusOK, "ok", data)</span>
+}
+
+func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        if r.Method != http.MethodGet </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+                return
+        }</span>
+        <span class="cov0" title="0">role, err := middleware.GetUserRole(r.Context())
+        if err != nil || role != "faculty" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+                return
+        }</span>
+        <span class="cov0" title="0">query := r.URL.Query()
+        classID := query.Get("classID")
+        semester, err := strconv.Atoi(query.Get("semester"))
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "semester must be a number")
+                return
+        }</span>
+
+        <span class="cov0" title="0">if classID == "" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid classID")
+                return
+        }</span>
+
+        <span class="cov0" title="0">data, err := gh.gs.GetTopThree(classID, semester)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">utils.SendCustomResponse(w, http.StatusOK, "ok", data)</span>
+}
+
+func (gh *GradeHandler) AddGrade(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        if r.Method != http.MethodPost </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+                return
+        }</span>
+        <span class="cov8" title="1">role, err := middleware.GetUserRole(r.Context())
+        if err != nil || role != "faculty" </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+                return
+        }</span>
+        <span class="cov8" title="1">var req AddGradeRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+        <span class="cov8" title="1">err = gh.gs.AddGrades(req.StudentID, req.SubjectID, req.Grade, req.Semester)
+        if err != nil </span><span class="cov8" title="1">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov8" title="1">utils.CustomError(w, http.StatusCreated, "grade successfully added")</span>
+}
+
+func (gh *GradeHandler) UpdateGrade(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        if r.Method != http.MethodPatch </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+                return
+        }</span>
+        <span class="cov0" title="0">role, err := middleware.GetUserRole(r.Context())
+        if err != nil || role != "faculty" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+                return
+        }</span>
+        <span class="cov0" title="0">var req UpdateGrade
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+        <span class="cov0" title="0">err = gh.gs.UpdateGrade(req.StudentID, req.SubjectID, req.NewGrade)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">utils.CustomError(w, http.StatusCreated, "grade updated added")</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package handlers
+
+import (
+        "encoding/json"
+        "log"
+        "net/http"
+        "sms/middleware"
+        "sms/services"
+        "sms/utils"
+)
+
+type CreateStudentRequest struct {
+        RollNumber string `json:"roll_number"`
+        Name       string `json:"name"`
+        ClassID    string `json:"classID"`
+        Semester   int    `json:"semester"`
+}
+
+type CreateStudentResponse struct {
+        StudentID  string `json:"studentID"`
+        RollNumber string `json:"roll_number"`
+        Name       string `json:"name"`
+        ClassID    string `json:"classID"`
+        Semester   int    `json:"semester"`
+}
+
+type UpdateStudentRequest struct {
+        RollNumber string `json:"roll_number,omitempty"`
+        Name       string `json:"name,omitempty"`
+        ClassID    string `json:"classID,omitempty"`
+        Semester   int    `json:"semester,omitempty"`
+}
+
+type StudentHandler struct {
+        ss services.StudentService
+}
+
+func NewStudentHandler(ss services.StudentService) StudentHandler <span class="cov0" title="0">{
+        return StudentHandler{ss: ss}
+}</span>
+
+func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        if r.Method != http.MethodPost </span><span class="cov0" title="0">{
+                http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+                return
+        }</span>
+        <span class="cov0" title="0">role, err := middleware.GetUserRole(r.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusInternalServerError, "unable to get user role")
+        }</span>
+        <span class="cov0" title="0">if role != "admin" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusForbidden, "only admin can access")
+                return
+        }</span>
+
+        <span class="cov0" title="0">var req CreateStudentRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;req); err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+        <span class="cov0" title="0">log.Println("reaching till here")
+
+        student, err := sh.ss.CreateStudent(req.RollNumber, req.Name, req.ClassID, req.Semester)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">log.Println("reaching after db")
+        res := CreateStudentResponse{
+                StudentID:  student.StudentID,
+                RollNumber: student.RollNumber,
+                Name:       student.Name,
+                ClassID:    student.ClassID,
+                Semester:   student.Semester,
+        }
+
+        log.Println("reaching after create response")
+        utils.SendCustomResponse(w, http.StatusOK, "successfully added", res)</span>
+}
+
+func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        if r.Method != http.MethodPatch </span><span class="cov0" title="0">{
+                http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+                return
+        }</span>
+        <span class="cov0" title="0">role, err := middleware.GetUserRole(r.Context())
+        if err != nil || role != "admin" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusForbidden, "only admin can access")
+                return
+        }</span>
+        <span class="cov0" title="0">studentID := r.PathValue("studentID")
+        if studentID == "" </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid studentID")
+                return
+        }</span>
+        <span class="cov0" title="0">var updateStudent UpdateStudentRequest
+        if err := json.NewDecoder(r.Body).Decode(&amp;updateStudent); err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+                return
+        }</span>
+        <span class="cov0" title="0">err = sh.ss.UpdateStudent(studentID, updateStudent.Name, updateStudent.RollNumber, updateStudent.ClassID, updateStudent.Semester)
+        if err != nil </span><span class="cov0" title="0">{
+                utils.CustomError(w, http.StatusInternalServerError, err.Error())
+                return
+        }</span>
+        <span class="cov0" title="0">utils.CustomError(w, http.StatusOK, "updated successfully")</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

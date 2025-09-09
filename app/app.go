@@ -27,7 +27,7 @@ func SetupServer(db *sql.DB) *http.ServeMux {
 
 	//handlers
 	gradeHandler := handlers.NewGradeHandler(gradeService)
-	studentHandler := handlers.NewStudentHandler(studentService)
+	studentHandler := handlers.NewStudentHandler(&studentService)
 	authHandler := handlers.NewAuthHandler(authSevice)
 
 	mux := http.NewServeMux()

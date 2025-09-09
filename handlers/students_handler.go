@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sms/middleware"
 	"sms/services"
@@ -32,22 +31,16 @@ type UpdateStudentRequest struct {
 }
 
 type StudentHandler struct {
-	ss services.StudentService
+	ss services.StudentServiceI
 }
 
-func NewStudentHandler(ss services.StudentService) StudentHandler {
-	return StudentHandler{ss: ss}
+func NewStudentHandler(ss services.StudentServiceI) *StudentHandler {
+	return &StudentHandler{ss: ss}
 }
 
 func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	role, err := middleware.GetUserRole(r.Context())
-	if err != nil {
-		utils.CustomError(w, http.StatusInternalServerError, "unable to get user role")
-	}
+
+	role, _ := middleware.GetUserRole(r.Context())
 	if role != "admin" {
 		utils.CustomError(w, http.StatusForbidden, "only admin can access")
 		return
@@ -58,14 +51,14 @@ func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	log.Println("reaching till here")
+	// log.Println("reaching till here")
 
 	student, err := sh.ss.CreateStudent(req.RollNumber, req.Name, req.ClassID, req.Semester)
 	if err != nil {
 		utils.CustomError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	log.Println("reaching after db")
+	// log.Println("reaching after db")
 	res := CreateStudentResponse{
 		StudentID:  student.StudentID,
 		RollNumber: student.RollNumber,
@@ -74,15 +67,12 @@ func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 		Semester:   student.Semester,
 	}
 
-	log.Println("reaching after create response")
-	utils.SendCustomResponse(w, http.StatusOK, "successfully added", res)
+	// log.Println("reaching after create response")
+	utils.SendCustomResponse(w, http.StatusCreated, "successfully added", res)
 }
 
 func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPatch {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "admin" {
 		utils.CustomError(w, http.StatusForbidden, "only admin can access")
@@ -100,7 +90,7 @@ func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) 
 	}
 	err = sh.ss.UpdateStudent(studentID, updateStudent.Name, updateStudent.RollNumber, updateStudent.ClassID, updateStudent.Semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusInternalServerError, err.Error())
+		utils.CustomError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	utils.CustomError(w, http.StatusOK, "updated successfully")

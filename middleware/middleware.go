@@ -57,7 +57,7 @@ func GetUserID(ctx context.Context) (string, error) {
 func GetUserEmail(ctx context.Context) (string, error) {
 	email, ok := ctx.Value(ContextUserEmailKey).(string)
 	if !ok {
-		return "", errors.New("userEmail not found in context")
+		return "", errors.New("user Email not found in context")
 	}
 	return email, nil
 }
@@ -65,7 +65,7 @@ func GetUserEmail(ctx context.Context) (string, error) {
 func GetUserRole(ctx context.Context) (string, error) {
 	role, ok := ctx.Value(ContextUserRoleKey).(string)
 	if !ok {
-		return "", errors.New("userRole not found in context")
+		return "", errors.New("user Role not found in context")
 	}
 	return role, nil
 }

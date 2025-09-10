@@ -1,8 +1,10 @@
 package services_test
 
 import (
+	"errors"
 	"testing"
 
+	"sms/mocks"
 	mockrepo "sms/mocks"
 	"sms/models"
 	"sms/services"
@@ -136,4 +138,85 @@ func TestAddGrades_And_UpdateGrade(t *testing.T) {
 	if err := gs.UpdateGrade("s1", "sub1", -10); err == nil {
 		t.Errorf("expected error for negative grade")
 	}
+}
+func TestGetAverageOfClass(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockGrades := mocks.NewMockGradeRepositoryI(ctrl)
+	mockStudents := mocks.NewMockStudentRepositoryI(ctrl)
+
+	service := services.NewGradeService(mockGrades, mockStudents)
+
+	classID := "class1"
+	semester := 1
+
+	t.Run("success - average calculated", func(t *testing.T) {
+		students := []models.Students{
+			{StudentID: "s1", Name: "Alice"},
+			{StudentID: "s2", Name: "Bob"},
+		}
+
+		// mock student repo
+		mockStudents.EXPECT().
+			GetAllStudentsOfClass(classID, semester).
+			Return(students, nil)
+
+		// mock grade repo for each student
+		mockGrades.EXPECT().
+			GetSemesterGrades("s1", semester).
+			Return([]int{80, 90}, nil)
+
+		mockGrades.EXPECT().
+			GetSemesterGrades("s2", semester).
+			Return([]int{70, 100}, nil)
+
+		avg, err := service.GetAverageOfClass(classID, semester)
+
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		expected := 85 // (avg(s1)=85, avg(s2)=85 → class avg=85)
+		if avg != expected {
+			t.Errorf("expected %d, got %d", expected, avg)
+		}
+	})
+
+	t.Run("error - student repo fails", func(t *testing.T) {
+		mockStudents.EXPECT().
+			GetAllStudentsOfClass(classID, semester).
+			Return(nil, errors.New("db error"))
+
+		avg, err := service.GetAverageOfClass(classID, semester)
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+		if avg != 0 {
+			t.Errorf("expected 0, got %d", avg)
+		}
+	})
+
+	t.Run("error - grade repo fails", func(t *testing.T) {
+		students := []models.Students{
+			{StudentID: "s1", Name: "Alice"},
+		}
+
+		mockStudents.EXPECT().
+			GetAllStudentsOfClass(classID, semester).
+			Return(students, nil)
+
+		mockGrades.EXPECT().
+			GetSemesterGrades("s1", semester).
+			Return(nil, errors.New("db error"))
+
+		avg, err := service.GetAverageOfClass(classID, semester)
+
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+		if avg != 0 {
+			t.Errorf("expected 0, got %d", avg)
+		}
+	})
 }

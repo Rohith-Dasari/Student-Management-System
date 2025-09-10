@@ -61,6 +61,10 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 }
 
 func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
 
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {

@@ -39,6 +39,10 @@ func NewStudentHandler(ss services.StudentServiceI) *StudentHandler {
 }
 
 func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
 
 	role, _ := middleware.GetUserRole(r.Context())
 	if role != "admin" {
@@ -72,6 +76,10 @@ func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
 
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "admin" {

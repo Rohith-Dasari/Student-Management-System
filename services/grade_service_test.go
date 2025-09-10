@@ -157,12 +157,10 @@ func TestGetAverageOfClass(t *testing.T) {
 			{StudentID: "s2", Name: "Bob"},
 		}
 
-		// mock student repo
 		mockStudents.EXPECT().
 			GetAllStudentsOfClass(classID, semester).
 			Return(students, nil)
 
-		// mock grade repo for each student
 		mockGrades.EXPECT().
 			GetSemesterGrades("s1", semester).
 			Return([]int{80, 90}, nil)
@@ -176,7 +174,7 @@ func TestGetAverageOfClass(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
-		expected := 85 // (avg(s1)=85, avg(s2)=85 → class avg=85)
+		expected := 85
 		if avg != expected {
 			t.Errorf("expected %d, got %d", expected, avg)
 		}

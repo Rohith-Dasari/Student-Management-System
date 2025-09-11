@@ -36,7 +36,7 @@ func TestSetupServerRoutes(t *testing.T) {
 
 		mux.ServeHTTP(w, req)
 
-		if w.Code != http.StatusOK && w.Code != http.StatusUnauthorized && w.Code != http.StatusBadRequest {
+		if w.Code != http.StatusUnauthorized && w.Code != http.StatusBadRequest {
 			t.Errorf("route %s %s returned status %d", tt.method, tt.route, w.Code)
 		}
 	}

@@ -16,8 +16,8 @@ const (
 	ContextUserRoleKey  contextKey = "userRole"
 )
 
-func JWTAuth(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
@@ -42,8 +42,8 @@ func JWTAuth(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, ContextUserEmailKey, claims.Email)
 		ctx = context.WithValue(ctx, ContextUserRoleKey, claims.Role)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		next(w, r.WithContext(ctx))
+	}
 }
 
 func GetUserID(ctx context.Context) (string, error) {

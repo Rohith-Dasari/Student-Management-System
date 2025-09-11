@@ -26,6 +26,9 @@ func (gs *GradeService) GetAverageGradeOfStudent(studentID string, semester int)
 	if err != nil {
 		return 0, err
 	}
+	if len(grades) == 0 {
+		return 0, nil
+	}
 
 	//calculate average
 	sum := 0
@@ -34,7 +37,6 @@ func (gs *GradeService) GetAverageGradeOfStudent(studentID string, semester int)
 	}
 	avg := sum / len(grades)
 	return avg, nil
-
 }
 
 func (gs *GradeService) GetAverageGradesOfEachStudentOfClass(classID string, semester int) (map[string]int, error) {

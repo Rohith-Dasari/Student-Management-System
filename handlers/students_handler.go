@@ -40,26 +40,26 @@ func NewStudentHandler(ss services.StudentServiceI) *StudentHandler {
 
 func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	role, _ := middleware.GetUserRole(r.Context())
 	if role != "admin" {
-		utils.CustomError(w, http.StatusForbidden, "only admin can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only admin can access")
 		return
 	}
 
 	var req CreateStudentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	// log.Println("reaching till here")
 
 	student, err := sh.ss.CreateStudent(req.RollNumber, req.Name, req.ClassID, req.Semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	// log.Println("reaching after db")
@@ -72,34 +72,34 @@ func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// log.Println("reaching after create response")
-	utils.SendCustomResponse(w, http.StatusCreated, "successfully added", res)
+	utils.CustomResponseSender(w, http.StatusCreated, "successfully added", res)
 }
 
 func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "admin" {
-		utils.CustomError(w, http.StatusForbidden, "only admin can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only admin can access")
 		return
 	}
 	studentID := r.PathValue("studentID")
 	if studentID == "" {
-		utils.CustomError(w, http.StatusBadRequest, "invalid studentID")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid studentID")
 		return
 	}
 	var updateStudent UpdateStudentRequest
 	if err := json.NewDecoder(r.Body).Decode(&updateStudent); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	err = sh.ss.UpdateStudent(studentID, updateStudent.Name, updateStudent.RollNumber, updateStudent.ClassID, updateStudent.Semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	utils.CustomError(w, http.StatusOK, "updated successfully")
+	utils.CustomResponseSender(w, http.StatusOK, "updated successfully")
 }

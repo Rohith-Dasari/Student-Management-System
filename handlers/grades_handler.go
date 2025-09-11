@@ -32,108 +32,108 @@ func NewGradeHandler(gs services.GradeServiceI) *GradeHandler {
 
 func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {
-		utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
 	query := r.URL.Query()
 	classID := query.Get("classID")
 	semester, err := strconv.Atoi(query.Get("semester"))
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "semester must be a number")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
 		return
 	}
 	if classID == "" {
-		utils.CustomError(w, http.StatusBadRequest, "invalid classID")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid classID")
 		return
 	}
 
 	data, err := gh.gs.GetAverageOfClass(classID, semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	utils.SendCustomResponse(w, http.StatusOK, "ok", data)
+	utils.CustomResponseSender(w, http.StatusOK, "ok", data)
 }
 
 func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {
-		utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
 	query := r.URL.Query()
 	classID := query.Get("classID")
 	semester, err := strconv.Atoi(query.Get("semester"))
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "semester must be a number")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
 		return
 	}
 
 	if classID == "" {
-		utils.CustomError(w, http.StatusBadRequest, "invalid classID")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid classID")
 		return
 	}
 
 	data, err := gh.gs.GetTopThree(classID, semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	utils.SendCustomResponse(w, http.StatusOK, "ok", data)
+	utils.CustomResponseSender(w, http.StatusOK, "ok", data)
 }
 
 func (gh *GradeHandler) AddGrade(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {
-		utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
 	var req AddGradeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	err = gh.gs.AddGrades(req.StudentID, req.SubjectID, req.Grade, req.Semester)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	utils.CustomError(w, http.StatusCreated, "grade successfully added")
+	utils.CustomResponseSender(w, http.StatusCreated, "grade successfully added")
 }
 
 func (gh *GradeHandler) UpdateGrade(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPatch {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {
-		utils.CustomError(w, http.StatusForbidden, "only faculty can access")
+		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
 	var req UpdateGrade
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	err = gh.gs.UpdateGrade(req.StudentID, req.SubjectID, req.NewGrade)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	utils.CustomError(w, http.StatusOK, "grade updated added")
+	utils.CustomResponseSender(w, http.StatusOK, "grade updated added")
 }

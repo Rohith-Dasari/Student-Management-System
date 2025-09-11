@@ -37,14 +37,14 @@ func SetupServer(db *sql.DB) *http.ServeMux {
 	mux.HandleFunc("POST /api/v1/signup", authHandler.Signup)
 
 	//student
-	mux.Handle("POST /api/v1/students", middleware.JWTAuth(http.HandlerFunc(studentHandler.AddStudent)))
-	mux.Handle("PATCH /api/v1/students/{studentID}", middleware.JWTAuth(http.HandlerFunc(studentHandler.UpdateStudent)))
+	mux.Handle("POST /api/v1/students", middleware.JWTAuth(studentHandler.AddStudent))
+	mux.Handle("PATCH /api/v1/students/{studentID}", middleware.JWTAuth(studentHandler.UpdateStudent))
 
 	// grades
-	mux.Handle("POST /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.AddGrade)))
-	mux.Handle("GET /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.GetAverageOfClass)))
-	mux.Handle("GET /api/v1/grades/toppers", middleware.JWTAuth(http.HandlerFunc(gradeHandler.GetTopThree)))
-	mux.Handle("PATCH /api/v1/grades", middleware.JWTAuth(http.HandlerFunc(gradeHandler.UpdateGrade)))
+	mux.Handle("POST /api/v1/grades", middleware.JWTAuth(gradeHandler.AddGrade))
+	mux.Handle("GET /api/v1/grades", middleware.JWTAuth(gradeHandler.GetAverageOfClass))
+	mux.Handle("GET /api/v1/grades/toppers", middleware.JWTAuth(gradeHandler.GetTopThree))
+	mux.Handle("PATCH /api/v1/grades", middleware.JWTAuth(gradeHandler.UpdateGrade))
 	return mux
 }
 

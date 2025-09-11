@@ -23,11 +23,6 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 }
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Role string `json:"role"`
-}
 
 type SignupRequest struct {
 	Name     string `json:"name"`
@@ -41,74 +36,57 @@ type SignupResponse struct {
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "invalid method")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "invalid method")
 		return
 	}
 
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
 	user, err := h.as.ValidateLogin(r.Context(), req.Email, req.Password)
 	if err != nil {
-		utils.CustomError(w, http.StatusUnauthorized, err.Error())
+		utils.CustomResponseSender(w, http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
 	if err != nil {
-		utils.CustomError(w, 409, "Failed to generate token")
+		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return
 	}
-
-	res := LoginResponse{
-		Token: token,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		utils.CustomError(w, 409, "Failed to Encode Response")
-	}
+	utils.CustomResponseSender(w, http.StatusOK, "login successful", token)
 }
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		utils.CustomError(w, http.StatusMethodNotAllowed, "invalid method")
+		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "invalid method")
 		return
 	}
 
 	var req SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.CustomError(w, http.StatusBadRequest, "invalid request body")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	if req.Name == "" || req.Email == "" || req.Password == "" {
-		utils.CustomError(w, http.StatusBadRequest, "name, email and password can't be empty ")
+		utils.CustomResponseSender(w, http.StatusBadRequest, "name, email and password can't be empty ")
 		return
 	}
 
 	user, err := h.as.Signup(r.Context(), req.Name, req.Email, req.Password)
 	if err != nil {
-		utils.CustomError(w, http.StatusBadRequest, err.Error())
+		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
 	if err != nil {
-		utils.CustomError(w, 409, "Failed to generate token")
+		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return
 	}
 
-	res := SignupResponse{
-		Token: token,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		utils.CustomError(w, 409, "Failed to Encode Response")
-	}
+	utils.CustomResponseSender(w, http.StatusOK, "signup successful", token)
 }

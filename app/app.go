@@ -48,19 +48,8 @@ func SetupServer(db *sql.DB) *http.ServeMux {
 	return mux
 }
 
-func InitDBWithDSN(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite", dsn)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
+func Start(DB *sql.DB) {
 
-func Start() {
-	DB, error := InitDBWithDSN("sms.db")
-	if error != nil {
-		log.Fatal(error.Error())
-	}
 	mux := SetupServer(DB)
 
 	// Start server

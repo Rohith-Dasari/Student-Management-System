@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"sms/app"
@@ -8,11 +9,8 @@ import (
 )
 
 func TestSetupServerRoutes(t *testing.T) {
-	db, err := app.InitDBWithDSN(":memory:")
-	if err != nil {
-		t.Fatalf("failed to init db: %v", err)
-	}
-	defer db.Close()
+
+	db, _ := sql.Open("sqlite", ":memory:")
 
 	mux := app.SetupServer(db)
 

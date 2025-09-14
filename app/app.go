@@ -43,11 +43,11 @@ func SetupServer(db *sql.DB) *http.ServeMux {
 	// grades
 	mux.Handle("POST /api/v1/grades", middleware.JWTAuth(gradeHandler.AddGrade))
 
+	// mux.Handle("GET /api/v1/grades", middleware.JWTAuth(gradeHandler.GetAverageOfClass))
+	mux.Handle("GET /classes/{classId}/semesters/{semester}/average", middleware.JWTAuth(gradeHandler.GetAverageOfClass))
 
-	mux.Handle("GET /api/v1/grades", middleware.JWTAuth(gradeHandler.GetAverageOfClass))
-	
-	mux.Handle("GET /api/v1/grades/toppers", middleware.JWTAuth(gradeHandler.GetTopThree))
-
+	// mux.Handle("GET /api/v1/grades/toppers", middleware.JWTAuth(gradeHandler.GetTopThree))
+	mux.Handle("GET /classes/{classId}/semesters/{semester}/toppers", middleware.JWTAuth(gradeHandler.GetToppers))
 
 	mux.Handle("PATCH /api/v1/grades", middleware.JWTAuth(gradeHandler.UpdateGrade))
 	return mux

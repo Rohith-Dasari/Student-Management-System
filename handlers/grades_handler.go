@@ -40,9 +40,8 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
-	query := r.URL.Query()
-	classID := query.Get("classID")
-	semester, err := strconv.Atoi(query.Get("semester"))
+	classID := r.PathValue("classID")
+	semester, err := strconv.Atoi(r.PathValue("semester"))
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
 		return
@@ -60,7 +59,7 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 	utils.CustomResponseSender(w, http.StatusOK, "ok", data)
 }
 
-func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
+func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
@@ -71,11 +70,18 @@ func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
-	query := r.URL.Query()
-	classID := query.Get("classID")
-	semester, err := strconv.Atoi(query.Get("semester"))
+	classID := r.PathValue("classID")
+	semester, err := strconv.Atoi(r.PathValue("semester"))
+
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
+		return
+	}
+
+	query := r.URL.Query()
+	limit, err := strconv.Atoi(query.Get("limit"))
+	if err != nil {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "limit must be a number")
 		return
 	}
 
@@ -84,7 +90,7 @@ func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := gh.gs.GetTopThree(classID, semester)
+	data, err := gh.gs.GetToppers(classID, semester, limit)
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return

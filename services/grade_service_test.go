@@ -98,7 +98,7 @@ func TestGetTopThree(t *testing.T) {
 	mockStudentRepo.EXPECT().GetStudentByID("s1").Return(&students[0], nil)
 	mockStudentRepo.EXPECT().GetStudentByID("s3").Return(&students[2], nil)
 
-	topThree, err := gs.GetTopThree(classID, semester)
+	topThree, err := gs.GetToppers(classID, semester, 3)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

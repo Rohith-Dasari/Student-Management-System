@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sms/handlers"
 	"sms/middleware"
 	"sms/mocks"
-	"sms/services"
+	gradeRepository "sms/repository/gradesRepository"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -239,22 +240,24 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockGradeService := mocks.NewMockGradeServiceI(ctrl)
-
 	handler := handlers.NewGradeHandler(mockGradeService)
+
 	tests := []struct {
 		name           string
 		method         string
-		query          string
 		mockSetup      func()
 		expectedStatus int
 		role           string
+		classID        string
+		semester       string
 	}{
 		{
-			name:   "successful retrieval",
-			method: http.MethodGet,
-			query:  "?classID=1&semester=1",
+			name:     "successful retrieval",
+			method:   http.MethodGet,
+			classID:  "1",
+			semester: "1",
 			mockSetup: func() {
-				mockGradeService.EXPECT().GetAverageOfClass(gomock.Any(), gomock.Any()).Return(70, nil)
+				mockGradeService.EXPECT().GetAverageOfClass("1", 1).Return(70.0, nil).Times(1)
 			},
 			expectedStatus: http.StatusOK,
 			role:           "faculty",
@@ -262,15 +265,17 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 		{
 			name:           "invalid method",
 			method:         http.MethodPost,
-			query:          "?classID=1&semester=1",
+			classID:        "1",
+			semester:       "1",
 			mockSetup:      func() {},
 			expectedStatus: http.StatusMethodNotAllowed,
 			role:           "faculty",
 		},
 		{
-			name:   "invalid role",
-			method: http.MethodGet,
-			query:  "?classID=1&semester=1",
+			name:     "invalid role",
+			method:   http.MethodGet,
+			classID:  "1",
+			semester: "1",
 			mockSetup: func() {
 			},
 			expectedStatus: http.StatusForbidden,
@@ -279,7 +284,8 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 		{
 			name:           "invalid classID",
 			method:         http.MethodGet,
-			query:          "?semester=1",
+			classID:        "",
+			semester:       "1",
 			mockSetup:      func() {},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
@@ -287,17 +293,19 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 		{
 			name:           "invalid semester",
 			method:         http.MethodGet,
-			query:          "?classID=1&semester=invalid",
+			classID:        "1",
+			semester:       "invalid",
 			mockSetup:      func() {},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
 		},
 		{
-			name:   "service error",
-			method: http.MethodGet,
-			query:  "?classID=1&semester=7",
+			name:     "service error",
+			method:   http.MethodGet,
+			classID:  "1",
+			semester: "1",
 			mockSetup: func() {
-				mockGradeService.EXPECT().GetAverageOfClass(gomock.Any(), gomock.Any()).Return(0, errors.New("service error"))
+				mockGradeService.EXPECT().GetAverageOfClass("1", 1).Return(0.0, errors.New("service error")).Times(1)
 			},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
@@ -306,22 +314,30 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			req := httptest.NewRequest(tt.method, "/grades"+tt.query, nil)
+			req := httptest.NewRequest(tt.method, fmt.Sprintf("/classes/%s/semesters/%s/average", tt.classID, tt.semester), nil)
+			req.SetPathValue("classID", tt.classID)
+			req.SetPathValue("semester", tt.semester)
 
 			req = req.WithContext(AddUserToContext(req.Context(), tt.role))
 			tt.mockSetup()
 
 			rr := httptest.NewRecorder()
+
 			handler.GetAverageOfClass(rr, req)
+
 			if rr.Code != tt.expectedStatus {
-				t.Errorf("expected status %d, got %d", tt.expectedStatus, rr.Code)
+				var resp map[string]any
+				err := json.Unmarshal(rr.Body.Bytes(), &resp)
+				if err != nil {
+					t.Errorf("unmarshalling response body failed: %v", err)
+				}
+				t.Errorf("Test failed: %s. Expected status %d, got %d. Response: %v", tt.name, tt.expectedStatus, rr.Code, resp)
 			}
 		})
 	}
 }
 
-func TestHandler_GetTopThree(t *testing.T) {
+func TestHandler_GetToppers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -330,22 +346,29 @@ func TestHandler_GetTopThree(t *testing.T) {
 	handler := handlers.NewGradeHandler(mockGradeService)
 	tests := []struct {
 		name           string
-		query          string
+		classID        string
+		semester       string
+		topLimit       string
 		mockSetup      func()
 		expectedStatus int
 		role           string
-	}{{
-		name:  "successful retrieval",
-		query: "?classID=1&semester=1",
-		mockSetup: func() {
-			mockGradeService.EXPECT().GetTopThree(gomock.Any(), gomock.Any()).Return([]services.GradeReponse{}, nil)
-		},
-		expectedStatus: http.StatusOK,
-		role:           "faculty",
-	},
+	}{
 		{
-			name:  "invalid role",
-			query: "?classID=1&semester=1",
+			name:     "successful retrieval",
+			classID:  "1",
+			semester: "1",
+			topLimit: "3",
+			mockSetup: func() {
+				mockGradeService.EXPECT().GetToppers("1", 1, 3).Return([]gradeRepository.StudentAverage{}, nil).Times(1)
+			},
+			expectedStatus: http.StatusOK,
+			role:           "faculty",
+		},
+		{
+			name:     "invalid role",
+			classID:  "1",
+			semester: "1",
+			topLimit: "3",
 			mockSetup: func() {
 
 			},
@@ -353,26 +376,42 @@ func TestHandler_GetTopThree(t *testing.T) {
 			role:           "admin",
 		},
 		{
-			name:  "invalid classID",
-			query: "?classID=&semester=1",
+			name:     "invalid classID",
+			classID:  "",
+			semester: "1",
+			topLimit: "3",
 			mockSetup: func() {
 			},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
 		},
 		{
-			name:  "invalid semster",
-			query: "?classID=1&semester=invalid",
+			name:     "invalid semester",
+			classID:  "1",
+			semester: "invalid",
+			topLimit: "3",
 			mockSetup: func() {
 			},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
 		},
 		{
-			name:  "service error",
-			query: "?classID=1&semester=2",
+			name:     "invalid top limit",
+			classID:  "1",
+			semester: "1",
+			topLimit: "invalid",
 			mockSetup: func() {
-				mockGradeService.EXPECT().GetTopThree(gomock.Any(), gomock.Any()).Return(nil, errors.New("service error"))
+			},
+			expectedStatus: http.StatusBadRequest,
+			role:           "faculty",
+		},
+		{
+			name:     "service error",
+			classID:  "1",
+			semester: "1",
+			topLimit: "3",
+			mockSetup: func() {
+				mockGradeService.EXPECT().GetToppers("1", 1, 3).Return(nil, errors.New("service error")).Times(1)
 			},
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
@@ -380,18 +419,26 @@ func TestHandler_GetTopThree(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/classes/%s/semesters/%s/toppers?top=%s", tt.classID, tt.semester, tt.topLimit), nil)
 
-			req := httptest.NewRequest(http.MethodGet, "/grades/toppers"+tt.query, nil)
+			req.SetPathValue("classID", tt.classID)
+			req.SetPathValue("semester", tt.semester)
 
 			req = req.WithContext(AddUserToContext(req.Context(), tt.role))
 			tt.mockSetup()
 
 			rr := httptest.NewRecorder()
-			handler.GetTopThree(rr, req)
+
+			handler.GetToppers(rr, req)
+
 			if rr.Code != tt.expectedStatus {
-				t.Errorf("expected status %d, got %d", tt.expectedStatus, rr.Code)
+				var resp map[string]any
+				err := json.Unmarshal(rr.Body.Bytes(), &resp)
+				if err != nil {
+					t.Errorf("unmarshalling response body failed: %v", err)
+				}
+				t.Errorf("Test failed: %s. Expected status %d, got %d. Response: %v", tt.name, tt.expectedStatus, rr.Code, resp)
 			}
 		})
-
 	}
 }

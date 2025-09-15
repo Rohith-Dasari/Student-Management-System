@@ -2,113 +2,91 @@ package services_test
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"sms/mocks"
 	mockrepo "sms/mocks"
-	"sms/models"
+	gradeRepository "sms/repository/gradesRepository"
 	"sms/services"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
-func TestGetAverageGradeOfStudent(t *testing.T) {
+func TestGetToppers(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGradeRepo := mockrepo.NewMockGradeRepositoryI(ctrl)
-	mockStudentRepo := mockrepo.NewMockStudentRepositoryI(ctrl)
-
-	gs := services.NewGradeService(mockGradeRepo, mockStudentRepo)
-
-	studentID := "stu1"
-	semester := 1
-	mockGradeRepo.EXPECT().GetSemesterGrades(studentID, semester).Return([]int{80, 90, 100}, nil)
-
-	avg, err := gs.GetAverageGradeOfStudent(studentID, semester)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-	if avg != 90 {
-		t.Errorf("expected average 90, got %d", avg)
-	}
-}
-
-func TestGetAverageGradesOfEachStudentOfClass(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockGradeRepo := mockrepo.NewMockGradeRepositoryI(ctrl)
-	mockStudentRepo := mockrepo.NewMockStudentRepositoryI(ctrl)
-
-	gs := services.NewGradeService(mockGradeRepo, mockStudentRepo)
-
-	classID := "class1"
-	semester := 1
-
-	students := []models.Students{
-		{StudentID: "stu1", Name: "A"},
-		{StudentID: "stu2", Name: "B"},
+	mockRepo := mocks.NewMockGradeRepositoryI(ctrl)
+	gradeService := services.NewGradeService(mockRepo)
+	expectedToppers := []gradeRepository.StudentAverage{
+		{StudentID: "student1", Average: 95.5},
+		{StudentID: "student2", Average: 92.0},
+		{StudentID: "student3", Average: 88.5},
 	}
 
-	mockStudentRepo.EXPECT().GetAllStudentsOfClass(classID, semester).Return(students, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("stu1", semester).Return([]int{80, 90}, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("stu2", semester).Return([]int{70, 100}, nil)
-
-	result, err := gs.GetAverageGradesOfEachStudentOfClass(classID, semester)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
+	tests := []struct {
+		name            string
+		classID         string
+		semester        int
+		top             int
+		mockSetup       func()
+		expectedToppers []gradeRepository.StudentAverage
+		expectedError   error
+	}{
+		{
+			name:     "Successful retrieval of toppers",
+			classID:  "CS101",
+			semester: 1,
+			top:      3,
+			mockSetup: func() {
+				mockRepo.EXPECT().GetToppers("CS101", 1, 3).Return(expectedToppers, nil).Times(1)
+			},
+			expectedToppers: expectedToppers,
+			expectedError:   nil,
+		},
+		{
+			name:     "Repository returns an error",
+			classID:  "CS102",
+			semester: 2,
+			top:      5,
+			mockSetup: func() {
+				mockRepo.EXPECT().GetToppers("CS102", 2, 5).Return(nil, errors.New("database error")).Times(1)
+			},
+			expectedToppers: nil,
+			expectedError:   errors.New("database error"),
+		},
+		{
+			name:     "Empty result from repository",
+			classID:  "CS103",
+			semester: 3,
+			top:      10,
+			mockSetup: func() {
+				mockRepo.EXPECT().GetToppers("CS103", 3, 10).Return([]gradeRepository.StudentAverage{}, nil).Times(1)
+			},
+			expectedToppers: []gradeRepository.StudentAverage{},
+			expectedError:   nil,
+		},
 	}
 
-	if len(result) != 2 {
-		t.Errorf("expected 2 students, got %d", len(result))
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mockSetup()
+			toppers, err := gradeService.GetToppers(tt.classID, tt.semester, tt.top)
 
-	if result["stu1"] != 85 || result["stu2"] != 85 {
-		t.Errorf("expected averages 85, got %v", result)
-	}
-}
-
-func TestGetTopThree(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockGradeRepo := mockrepo.NewMockGradeRepositoryI(ctrl)
-	mockStudentRepo := mockrepo.NewMockStudentRepositoryI(ctrl)
-
-	gs := services.NewGradeService(mockGradeRepo, mockStudentRepo)
-
-	classID := "class1"
-	semester := 1
-
-	students := []models.Students{
-		{StudentID: "s1", Name: "Alice"},
-		{StudentID: "s2", Name: "Bob"},
-		{StudentID: "s3", Name: "Charlie"},
-		{StudentID: "s4", Name: "David"},
-	}
-
-	mockStudentRepo.EXPECT().GetAllStudentsOfClass(classID, semester).Return(students, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("s1", semester).Return([]int{90}, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("s2", semester).Return([]int{95}, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("s3", semester).Return([]int{85}, nil)
-	mockGradeRepo.EXPECT().GetSemesterGrades("s4", semester).Return([]int{80}, nil)
-
-	mockStudentRepo.EXPECT().GetStudentByID("s2").Return(&students[1], nil)
-	mockStudentRepo.EXPECT().GetStudentByID("s1").Return(&students[0], nil)
-	mockStudentRepo.EXPECT().GetStudentByID("s3").Return(&students[2], nil)
-
-	topThree, err := gs.GetToppers(classID, semester, 3)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	if len(topThree) != 3 {
-		t.Errorf("expected 3 students, got %d", len(topThree))
-	}
-
-	if topThree[0].StudentID != "s2" || topThree[1].StudentID != "s1" || topThree[2].StudentID != "s3" {
-		t.Errorf("top three order is wrong: %v", topThree)
+			if tt.expectedError != nil {
+				if err == nil || err.Error() != tt.expectedError.Error() {
+					t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if !reflect.DeepEqual(toppers, tt.expectedToppers) {
+					t.Errorf("expected toppers: %v, got: %v", tt.expectedToppers, toppers)
+				}
+			}
+		})
 	}
 }
 
@@ -117,9 +95,8 @@ func TestAddGrades_And_UpdateGrade(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockGradeRepo := mockrepo.NewMockGradeRepositoryI(ctrl)
-	mockStudentRepo := mockrepo.NewMockStudentRepositoryI(ctrl)
 
-	gs := services.NewGradeService(mockGradeRepo, mockStudentRepo)
+	gs := services.NewGradeService(mockGradeRepo)
 
 	mockGradeRepo.EXPECT().AddGrades("s1", "sub1", 90, 1).Return(nil)
 	if err := gs.AddGrades("s1", "sub1", 90, 1); err != nil {
@@ -139,82 +116,72 @@ func TestAddGrades_And_UpdateGrade(t *testing.T) {
 		t.Errorf("expected error for negative grade")
 	}
 }
+
 func TestGetAverageOfClass(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	tests := []struct {
+		name          string
+		classID       string
+		semester      int
+		mockSetup     func(mockRepo *mocks.MockGradeRepositoryI)
+		expectedAvg   float64
+		expectedError error
+	}{
+		{
+			name:     "Successful retrieval of average",
+			classID:  "CS101",
+			semester: 1,
+			mockSetup: func(mockRepo *mocks.MockGradeRepositoryI) {
+				mockRepo.EXPECT().GetClassAverage("CS101", 1).Return(85.5, nil).Times(1)
+			},
+			expectedAvg:   85.5,
+			expectedError: nil,
+		},
+		{
+			name:     "Repository returns an error",
+			classID:  "CS102",
+			semester: 2,
+			mockSetup: func(mockRepo *mocks.MockGradeRepositoryI) {
+				mockRepo.EXPECT().GetClassAverage("CS102", 2).Return(0.0, errors.New("database error")).Times(1)
+			},
+			expectedAvg:   0.0,
+			expectedError: errors.New("database error"),
+		},
+		{
+			name:     "No class ID provided",
+			classID:  "",
+			semester: 1,
+			mockSetup: func(mockRepo *mocks.MockGradeRepositoryI) {
+				mockRepo.EXPECT().GetClassAverage("", 1).Return(0.0, errors.New("invalid classID from repo")).Times(1)
+			},
+			expectedAvg:   0.0,
+			expectedError: errors.New("invalid classID from repo"),
+		},
+	}
 
-	mockGrades := mocks.NewMockGradeRepositoryI(ctrl)
-	mockStudents := mocks.NewMockStudentRepositoryI(ctrl)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	service := services.NewGradeService(mockGrades, mockStudents)
+			mockRepo := mocks.NewMockGradeRepositoryI(ctrl)
+			gradeService := services.NewGradeService(mockRepo)
 
-	classID := "class1"
-	semester := 1
+			tt.mockSetup(mockRepo)
 
-	t.Run("success - average calculated", func(t *testing.T) {
-		students := []models.Students{
-			{StudentID: "s1", Name: "Alice"},
-			{StudentID: "s2", Name: "Bob"},
-		}
+			average, err := gradeService.GetAverageOfClass(tt.classID, tt.semester)
 
-		mockStudents.EXPECT().
-			GetAllStudentsOfClass(classID, semester).
-			Return(students, nil)
-
-		mockGrades.EXPECT().
-			GetSemesterGrades("s1", semester).
-			Return([]int{80, 90}, nil)
-
-		mockGrades.EXPECT().
-			GetSemesterGrades("s2", semester).
-			Return([]int{70, 100}, nil)
-
-		avg, err := service.GetAverageOfClass(classID, semester)
-
-		if err != nil {
-			t.Fatalf("expected no error, got %v", err)
-		}
-		expected := 85
-		if avg != expected {
-			t.Errorf("expected %d, got %d", expected, avg)
-		}
-	})
-
-	t.Run("error - student repo fails", func(t *testing.T) {
-		mockStudents.EXPECT().
-			GetAllStudentsOfClass(classID, semester).
-			Return(nil, errors.New("db error"))
-
-		avg, err := service.GetAverageOfClass(classID, semester)
-
-		if err == nil {
-			t.Fatal("expected error, got nil")
-		}
-		if avg != 0 {
-			t.Errorf("expected 0, got %d", avg)
-		}
-	})
-
-	t.Run("error - grade repo fails", func(t *testing.T) {
-		students := []models.Students{
-			{StudentID: "s1", Name: "Alice"},
-		}
-
-		mockStudents.EXPECT().
-			GetAllStudentsOfClass(classID, semester).
-			Return(students, nil)
-
-		mockGrades.EXPECT().
-			GetSemesterGrades("s1", semester).
-			Return(nil, errors.New("db error"))
-
-		avg, err := service.GetAverageOfClass(classID, semester)
-
-		if err == nil {
-			t.Fatal("expected error, got nil")
-		}
-		if avg != 0 {
-			t.Errorf("expected 0, got %d", avg)
-		}
-	})
+			if tt.expectedError != nil {
+				if err == nil || err.Error() != tt.expectedError.Error() {
+					t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if average != tt.expectedAvg {
+					t.Errorf("expected average: %f, got: %f", tt.expectedAvg, average)
+				}
+			}
+		})
+	}
 }

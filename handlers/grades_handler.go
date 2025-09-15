@@ -60,11 +60,6 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 }
 
 func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
 	role, err := middleware.GetUserRole(r.Context())
 	if err != nil || role != "faculty" {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
@@ -79,7 +74,7 @@ func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := r.URL.Query()
-	limit, err := strconv.Atoi(query.Get("limit"))
+	limit, err := strconv.Atoi(query.Get("top"))
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "limit must be a number")
 		return

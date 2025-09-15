@@ -11,7 +11,7 @@ package mocks
 
 import (
 	reflect "reflect"
-	services "sms/services"
+	gradeRepository "sms/repository/gradesRepository"
 
 	gomock "go.uber.org/mock/gomock"
 )
@@ -55,10 +55,10 @@ func (mr *MockGradeServiceIMockRecorder) AddGrades(studentID, subjectID, Grade, 
 }
 
 // GetAverageOfClass mocks base method.
-func (m *MockGradeServiceI) GetAverageOfClass(classID string, semester int) (int, error) {
+func (m *MockGradeServiceI) GetAverageOfClass(classID string, semester int) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAverageOfClass", classID, semester)
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -69,19 +69,19 @@ func (mr *MockGradeServiceIMockRecorder) GetAverageOfClass(classID, semester any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAverageOfClass", reflect.TypeOf((*MockGradeServiceI)(nil).GetAverageOfClass), classID, semester)
 }
 
-// GetTopThree mocks base method.
-func (m *MockGradeServiceI) GetTopThree(classID string, semester int) ([]services.GradeReponse, error) {
+// GetToppers mocks base method.
+func (m *MockGradeServiceI) GetToppers(classID string, semester, top int) ([]gradeRepository.StudentAverage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTopThree", classID, semester)
-	ret0, _ := ret[0].([]services.GradeReponse)
+	ret := m.ctrl.Call(m, "GetToppers", classID, semester, top)
+	ret0, _ := ret[0].([]gradeRepository.StudentAverage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTopThree indicates an expected call of GetTopThree.
-func (mr *MockGradeServiceIMockRecorder) GetTopThree(classID, semester any) *gomock.Call {
+// GetToppers indicates an expected call of GetToppers.
+func (mr *MockGradeServiceIMockRecorder) GetToppers(classID, semester, top any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTopThree", reflect.TypeOf((*MockGradeServiceI)(nil).GetTopThree), classID, semester)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToppers", reflect.TypeOf((*MockGradeServiceI)(nil).GetToppers), classID, semester, top)
 }
 
 // UpdateGrade mocks base method.

@@ -99,12 +99,14 @@ func TestAuthHandler_Login(t *testing.T) {
 			}
 
 			if tt.expectToken {
-				var res handlers.LoginResponse
-				if err := json.NewDecoder(w.Body).Decode(&res); err != nil {
-					t.Errorf("failed to decode response: %v", err)
+				var resp map[string]any
+				err := json.Unmarshal((w.Body.Bytes()), &resp)
+				if err != nil {
+					t.Errorf("unmarshalling response body failed")
 				}
-				if res.Token == "" {
-					t.Error("expected token in response, got empty string")
+
+				if _, ok := resp["data"]; !ok {
+					t.Errorf("expected to have token in data field but data field not found")
 				}
 			}
 		})
@@ -204,12 +206,14 @@ func TestAuthHandler_Signup(t *testing.T) {
 			}
 
 			if tt.expectToken {
-				var res handlers.SignupResponse
-				if err := json.NewDecoder(w.Body).Decode(&res); err != nil {
-					t.Errorf("failed to decode response: %v", err)
+				var resp map[string]any
+				err := json.Unmarshal((w.Body.Bytes()), &resp)
+				if err != nil {
+					t.Errorf("unmarshalling response body failed")
 				}
-				if res.Token == "" {
-					t.Error("expected token in response, got empty string")
+
+				if _, ok := resp["data"]; !ok {
+					t.Errorf("expected to have token in data field but data field not found")
 				}
 			}
 		})

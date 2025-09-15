@@ -23,8 +23,8 @@ func TestSetupServerRoutes(t *testing.T) {
 		{"POST", "/api/v1/students"},
 		{"PATCH", "/api/v1/students/{studentID}"},
 		{"POST", "/api/v1/grades"},
-		{"GET", "/api/v1/grades"},
-		{"GET", "/api/v1/grades/toppers"},
+		{"GET", "/api/v1/classes/{classID}/semesters/{semester}/average"},
+		{"GET", "/api/v1/classes/{classID}/semesters/{semester}/toppers"},
 		{"PATCH", "/api/v1/grades"},
 	}
 

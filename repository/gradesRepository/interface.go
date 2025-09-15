@@ -5,7 +5,6 @@ type GradeRepositoryI interface {
 	GetSemesterGrades(studentID string, semester int) ([]int, error)
 	AddGrades(studentID string, subjectID string, Grade int, semester int) error
 	UpdateGrade(studentID string, subjectID string, newGrade int) error
-	GetAverageGrade(studentID string, semester int) (float64, error)
 	GetClassAverage(classID string, semester int) (float64, error)
 	GetToppers(classID string, semester, top int) ([]StudentAverage, error)
 }

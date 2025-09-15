@@ -47,12 +47,12 @@ func (gr *GradeRepo) UpdateGrade(studentID string, subjectID string, newGrade in
 	return err
 }
 
-func (gr *GradeRepo) GetAverageGrade(studentID string, semester int) (float64, error) {
-	stmt := `select avg(grade) from grades where StudentID=? and semester=?`
-	var avg float64
-	err := gr.db.QueryRow(stmt, studentID, semester).Scan(&avg)
-	return avg, err
-}
+// func (gr *GradeRepo) GetAverageGrade(studentID string, semester int) (float64, error) {
+// 	stmt := `select avg(grade) from grades where StudentID=? and semester=?`
+// 	var avg float64
+// 	err := gr.db.QueryRow(stmt, studentID, semester).Scan(&avg)
+// 	return avg, err
+// }
 
 func (gr *GradeRepo) GetClassAverage(classID string, semester int) (float64, error) {
 	stmt := `select avg(g.grade) from grades g join students s on s.StudentID=g.StudentID where s.classID=? and g.semester=?`

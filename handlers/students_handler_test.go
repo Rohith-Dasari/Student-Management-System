@@ -25,7 +25,7 @@ func TestStudentHandler_AddStudent(t *testing.T) {
 	tests := []struct {
 		name           string
 		body           any
-		role           string
+		role           models.Role
 		mockService    func()
 		expectedStatus int
 	}{
@@ -115,7 +115,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 		body           any
 		expectedStatus int
 		mockService    func(*mocks.MockStudentServiceI)
-		role           string
+		role           models.Role
 		studentID      string
 	}{
 		{

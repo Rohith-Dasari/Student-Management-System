@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sms/models"
 	"sms/services"
 	"strings"
 )
@@ -62,8 +63,8 @@ func GetUserEmail(ctx context.Context) (string, error) {
 	return email, nil
 }
 
-func GetUserRole(ctx context.Context) (string, error) {
-	role, ok := ctx.Value(ContextUserRoleKey).(string)
+func GetUserRole(ctx context.Context) (models.Role, error) {
+	role, ok := ctx.Value(ContextUserRoleKey).(models.Role)
 	if !ok {
 		return "", errors.New("user Role not found in context")
 	}

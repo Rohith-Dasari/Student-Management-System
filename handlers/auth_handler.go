@@ -48,7 +48,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+	token, err := services.GenerateJWT(user.UserID, user.Email, user.Role)
 	if err != nil {
 		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return
@@ -78,7 +78,7 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+	token, err := services.GenerateJWT(user.UserID, user.Email, user.Role)
 	if err != nil {
 		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return

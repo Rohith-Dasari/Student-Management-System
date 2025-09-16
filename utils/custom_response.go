@@ -22,6 +22,7 @@ type CustomResponse struct {
 // 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 // 	}
 // }
+
 // func SendCustomResponse(w http.ResponseWriter, statusCode int, message string, data any) {
 // 	resp := CustomResponse{
 // 		Message:    message,

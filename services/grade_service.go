@@ -29,11 +29,11 @@ func (gs *GradeService) GetToppers(classID string, semester int, top int) ([]gra
 	return toppers, nil
 }
 
-func (gs *GradeService) AddGrades(studentID string, subjectID string, Grade int, semester int) error {
-	if Grade < 0 {
+func (gs *GradeService) AddGrades(studentID string, subjectID string, grade int, semester int) error {
+	if grade < 0 {
 		return errors.New("grade can't be negative")
 	}
-	err := gs.gr.AddGrades(studentID, subjectID, Grade, semester)
+	err := gs.gr.AddGrades(studentID, subjectID, grade, semester)
 	return err
 }
 

@@ -61,12 +61,12 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "invalid method")
 		return
 	}
-
 	var req SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+
 	if req.Name == "" || req.Email == "" || req.Password == "" {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "name, email and password can't be empty ")
 		return

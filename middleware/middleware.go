@@ -38,7 +38,6 @@ func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
-
 		ctx := context.WithValue(r.Context(), ContextUserIDKey, claims.UserID)
 		ctx = context.WithValue(ctx, ContextUserEmailKey, claims.Email)
 		ctx = context.WithValue(ctx, ContextUserRoleKey, claims.Role)

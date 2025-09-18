@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sms/constants"
 	"sms/middleware"
-	"sms/models"
 	"sms/services"
 	"sms/utils"
 	"strconv"
@@ -37,7 +37,7 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != models.Faculty {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
@@ -62,7 +62,7 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 
 func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != models.Faculty {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
@@ -100,7 +100,7 @@ func (gh *GradeHandler) AddGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != models.Faculty {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
@@ -123,7 +123,7 @@ func (gh *GradeHandler) UpdateGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != models.Faculty {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}

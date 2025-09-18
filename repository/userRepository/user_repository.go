@@ -3,6 +3,7 @@ package userrepository
 import (
 	"database/sql"
 	"log"
+	"sms/constants"
 	"sms/models"
 )
 
@@ -25,7 +26,7 @@ func (ur *UserRepo) GetUserByEmailID(email string) (*models.User, error) {
 	row := ur.db.QueryRow(stmt, email)
 	var user models.User
 	err := row.Scan(&user.UserID, &user.Name, &user.Email, &user.Password, &user.Role)
-	user.Role = models.Role(user.Role)
+	user.Role = constants.Role(user.Role)
 	log.Println(user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {

@@ -4,17 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"sms/models"
+	"sms/constants"
 	"sms/services"
 	"strings"
-)
-
-type contextKey string
-
-const (
-	ContextUserIDKey    contextKey = "userID"
-	ContextUserEmailKey contextKey = "userEmail"
-	ContextUserRoleKey  contextKey = "userRole"
 )
 
 func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
@@ -38,16 +30,16 @@ func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 			return
 		}
-		ctx := context.WithValue(r.Context(), ContextUserIDKey, claims.UserID)
-		ctx = context.WithValue(ctx, ContextUserEmailKey, claims.Email)
-		ctx = context.WithValue(ctx, ContextUserRoleKey, claims.Role)
+		ctx := context.WithValue(r.Context(), constants.ContextUserIDKey, claims.UserID)
+		ctx = context.WithValue(ctx, constants.ContextUserEmailKey, claims.Email)
+		ctx = context.WithValue(ctx, constants.ContextUserRoleKey, claims.Role)
 
 		next(w, r.WithContext(ctx))
 	}
 }
 
 func GetUserID(ctx context.Context) (string, error) {
-	userID, ok := ctx.Value(ContextUserIDKey).(string)
+	userID, ok := ctx.Value(constants.ContextUserIDKey).(string)
 	if !ok {
 		return "", errors.New("userID not found in context")
 	}
@@ -55,15 +47,15 @@ func GetUserID(ctx context.Context) (string, error) {
 }
 
 func GetUserEmail(ctx context.Context) (string, error) {
-	email, ok := ctx.Value(ContextUserEmailKey).(string)
+	email, ok := ctx.Value(constants.ContextUserEmailKey).(string)
 	if !ok {
 		return "", errors.New("user Email not found in context")
 	}
 	return email, nil
 }
 
-func GetUserRole(ctx context.Context) (models.Role, error) {
-	role, ok := ctx.Value(ContextUserRoleKey).(models.Role)
+func GetUserRole(ctx context.Context) (constants.Role, error) {
+	role, ok := ctx.Value(constants.ContextUserRoleKey).(constants.Role)
 	if !ok {
 		return "", errors.New("user Role not found in context")
 	}

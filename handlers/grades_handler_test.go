@@ -8,10 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sms/constants"
 	"sms/handlers"
-	"sms/middleware"
 	"sms/mocks"
-	"sms/models"
 	gradeRepository "sms/repository/gradesRepository"
 	"testing"
 
@@ -29,7 +28,7 @@ func TestGradeHandler_AddGrade(t *testing.T) {
 		name           string
 		method         string
 		body           any
-		role           models.Role
+		role           constants.Role
 		mockService    func()
 		expectedStatus int
 	}{
@@ -125,8 +124,8 @@ func TestGradeHandler_AddGrade(t *testing.T) {
 	}
 
 }
-func AddUserToContext(ctx context.Context, role models.Role) context.Context {
-	ctx = context.WithValue(ctx, middleware.ContextUserRoleKey, role)
+func AddUserToContext(ctx context.Context, role constants.Role) context.Context {
+	ctx = context.WithValue(ctx, constants.ContextUserRoleKey, role)
 	return ctx
 }
 
@@ -144,7 +143,7 @@ func TestGradeHandler_UpdateGrade(t *testing.T) {
 		body           any
 		mockSetup      func()
 		expectedStatus int
-		role           models.Role
+		role           constants.Role
 	}{
 		{
 			name:   "successful update",
@@ -248,7 +247,7 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 		method         string
 		mockSetup      func()
 		expectedStatus int
-		role           models.Role
+		role           constants.Role
 		classID        string
 		semester       string
 	}{
@@ -352,7 +351,7 @@ func TestHandler_GetToppers(t *testing.T) {
 		topLimit       string
 		mockSetup      func()
 		expectedStatus int
-		role           models.Role
+		role           constants.Role
 	}{
 		{
 			name:     "successful retrieval",

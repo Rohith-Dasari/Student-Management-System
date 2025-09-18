@@ -4,14 +4,14 @@ import (
 	"strings"
 	"testing"
 
-	"sms/models"
+	"sms/constants"
 	"sms/services"
 )
 
 func TestGenerateAndValidateJWT_Success(t *testing.T) {
 	userID := "123"
 	email := "test@example.com"
-	role := models.Role("admin")
+	role := constants.Role("admin")
 
 	token, err := services.GenerateJWT(userID, email, role)
 	if err != nil {

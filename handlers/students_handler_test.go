@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sms/constants"
 	"sms/handlers"
 	"sms/mocks"
 	"sms/models"
@@ -25,7 +26,7 @@ func TestStudentHandler_AddStudent(t *testing.T) {
 	tests := []struct {
 		name           string
 		body           any
-		role           models.Role
+		role           constants.Role
 		mockService    func()
 		expectedStatus int
 	}{
@@ -115,7 +116,7 @@ func TestStudentHandler_UpdateStudent(t *testing.T) {
 		body           any
 		expectedStatus int
 		mockService    func(*mocks.MockStudentServiceI)
-		role           models.Role
+		role           constants.Role
 		studentID      string
 	}{
 		{

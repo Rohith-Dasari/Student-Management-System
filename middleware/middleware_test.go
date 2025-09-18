@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sms/constants"
 	"sms/middleware"
-	"sms/models"
 	"sms/services"
 	"testing"
 
@@ -24,7 +24,7 @@ func TestJWTAuth(t *testing.T) {
 
 		role, err := middleware.GetUserRole(r.Context())
 		assert.NoError(t, err)
-		assert.Equal(t, models.Role("faculty"), role)
+		assert.Equal(t, constants.Role("faculty"), role)
 
 		w.WriteHeader(http.StatusOK)
 	})

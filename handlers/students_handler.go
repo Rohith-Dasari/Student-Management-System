@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sms/constants"
 	"sms/middleware"
-	"sms/models"
 	"sms/services"
 	"sms/utils"
 )
@@ -46,7 +46,7 @@ func (sh *StudentHandler) AddStudent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role, _ := middleware.GetUserRole(r.Context())
-	if role != models.Admin {
+	if role != constants.Admin {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only admin can access")
 		return
 	}
@@ -83,7 +83,7 @@ func (sh *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) 
 	}
 
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != models.Admin {
+	if err != nil || role != constants.Admin {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only admin can access")
 		return
 	}

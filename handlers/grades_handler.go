@@ -74,10 +74,21 @@ func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if semester <= 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be positive")
+		return
+	}
+
 	query := r.URL.Query()
 	limit, err := strconv.Atoi(query.Get("top"))
+
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "limit must be a number")
+		return
+	}
+
+	if limit < 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "limit can't be negative")
 		return
 	}
 

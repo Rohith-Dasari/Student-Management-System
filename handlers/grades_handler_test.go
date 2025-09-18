@@ -416,9 +416,46 @@ func TestHandler_GetToppers(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
 		},
+		{
+			name:           "missing top param",
+			classID:        "1",
+			semester:       "1",
+			topLimit:       "",
+			mockSetup:      func() {},
+			expectedStatus: http.StatusBadRequest,
+			role:           "faculty",
+		},
+		{
+			name:           "missing user role in context",
+			classID:        "1",
+			semester:       "1",
+			topLimit:       "3",
+			mockSetup:      func() {},
+			expectedStatus: http.StatusForbidden,
+			role:           "",
+		},
+		{
+			name:           "negative top limit",
+			classID:        "1",
+			semester:       "1",
+			topLimit:       "-5",
+			mockSetup:      func() {},
+			expectedStatus: http.StatusBadRequest,
+			role:           "faculty",
+		},
+		{
+			name:           "negative semester",
+			classID:        "1",
+			semester:       "-1",
+			topLimit:       "3",
+			mockSetup:      func() {},
+			expectedStatus: http.StatusBadRequest,
+			role:           "faculty",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/classes/%s/semesters/%s/toppers?top=%s", tt.classID, tt.semester, tt.topLimit), nil)
 
 			req.SetPathValue("classID", tt.classID)

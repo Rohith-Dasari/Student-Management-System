@@ -47,6 +47,11 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
 		return
 	}
+
+	if semester <= 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be positive")
+		return
+	}
 	if classID == "" {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid classID")
 		return

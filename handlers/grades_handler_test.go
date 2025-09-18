@@ -310,6 +310,15 @@ func TestHandler_GetAverageOfClass(t *testing.T) {
 			expectedStatus: http.StatusBadRequest,
 			role:           "faculty",
 		},
+		{
+			name:           "negative semester",
+			method:         http.MethodGet,
+			classID:        "1",
+			semester:       "-2",
+			mockSetup:      func() {},
+			expectedStatus: http.StatusBadRequest,
+			role:           "faculty",
+		},
 	}
 
 	for _, tt := range tests {

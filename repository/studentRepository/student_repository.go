@@ -13,25 +13,6 @@ func NewStudentRepo(db *sql.DB) *StudentRepo {
 	return &StudentRepo{db}
 }
 
-func (sr *StudentRepo) GetAllStudentsOfClass(classID string, semester int) ([]models.Students, error) {
-	stmt := `select StudentID,Name,RollNumber,ClassID, semester from students where ClassID=? and semester=?`
-	rows, err := sr.db.Query(stmt, classID, semester)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var students []models.Students
-	for rows.Next() {
-		var s models.Students
-		if err := rows.Scan(&s.StudentID, &s.Name, &s.RollNumber, &s.ClassID, &s.Semester); err != nil {
-			return nil, err
-		}
-		students = append(students, s)
-	}
-	return students, nil
-}
-
 func (sr *StudentRepo) AddStudent(uuid, rollNumber, name, classID string, semester int) error {
 	_, err := sr.db.Exec(`insert into students values(?,?,?,?,?)`, uuid, name, rollNumber, classID, semester)
 	return err

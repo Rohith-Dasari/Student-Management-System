@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"sms/constants"
 	"sms/middleware"
 	"sms/services"
 	"testing"
@@ -23,12 +24,11 @@ func TestJWTAuth(t *testing.T) {
 
 		role, err := middleware.GetUserRole(r.Context())
 		assert.NoError(t, err)
-		assert.Equal(t, "faculty", role)
+		assert.Equal(t, constants.Role("faculty"), role)
 
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// Generate valid token
 	validToken, err := services.GenerateJWT("u1", "user@example.com", "faculty")
 	assert.NoError(t, err)
 

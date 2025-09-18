@@ -71,7 +71,6 @@ func (a *AuthService) Signup(ctx context.Context, name, email, password string) 
 	if !a.IsValidPassword(password) {
 		return models.User{}, errors.New("password must be at least 12 characters long, and include uppercase, lowercase, number, and symbol")
 	}
-
 	hashedPassword, err := a.HashPassword(password)
 	if err != nil {
 		return models.User{}, err

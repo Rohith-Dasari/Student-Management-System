@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"sms/constants"
 	"sms/middleware"
 	"sms/services"
 	"sms/utils"
@@ -36,15 +37,19 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != "faculty" {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
-	query := r.URL.Query()
-	classID := query.Get("classID")
-	semester, err := strconv.Atoi(query.Get("semester"))
+	classID := r.PathValue("classID")
+	semester, err := strconv.Atoi(r.PathValue("semester"))
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
+		return
+	}
+
+	if semester <= 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be positive")
 		return
 	}
 	if classID == "" {
@@ -60,22 +65,35 @@ func (gh *GradeHandler) GetAverageOfClass(w http.ResponseWriter, r *http.Request
 	utils.CustomResponseSender(w, http.StatusOK, "ok", data)
 }
 
-func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
-	}
-
+func (gh *GradeHandler) GetToppers(w http.ResponseWriter, r *http.Request) {
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != "faculty" {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
-	query := r.URL.Query()
-	classID := query.Get("classID")
-	semester, err := strconv.Atoi(query.Get("semester"))
+	classID := r.PathValue("classID")
+	semester, err := strconv.Atoi(r.PathValue("semester"))
+
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be a number")
+		return
+	}
+
+	if semester <= 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "semester must be positive")
+		return
+	}
+
+	query := r.URL.Query()
+	limit, err := strconv.Atoi(query.Get("top"))
+
+	if err != nil {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "limit must be a number")
+		return
+	}
+
+	if limit < 0 {
+		utils.CustomResponseSender(w, http.StatusBadRequest, "limit can't be negative")
 		return
 	}
 
@@ -84,7 +102,7 @@ func (gh *GradeHandler) GetTopThree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := gh.gs.GetTopThree(classID, semester)
+	data, err := gh.gs.GetToppers(classID, semester, limit)
 	if err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, err.Error())
 		return
@@ -98,7 +116,7 @@ func (gh *GradeHandler) AddGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != "faculty" {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}
@@ -121,7 +139,7 @@ func (gh *GradeHandler) UpdateGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	role, err := middleware.GetUserRole(r.Context())
-	if err != nil || role != "faculty" {
+	if err != nil || role != constants.Faculty {
 		utils.CustomResponseSender(w, http.StatusForbidden, "only faculty can access")
 		return
 	}

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"sms/constants"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,13 +11,13 @@ import (
 var jwtSecret = []byte("your-secret-key")
 
 type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
+	UserID string         `json:"user_id"`
+	Email  string         `json:"email"`
+	Role   constants.Role `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(userID, email, role string) (string, error) {
+func GenerateJWT(userID, email string, role constants.Role) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,

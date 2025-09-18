@@ -20,10 +20,6 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-type LoginResponse struct {
-	Token string `json:"token"`
-}
-
 type SignupRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -52,7 +48,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+	token, err := services.GenerateJWT(user.UserID, user.Email, user.Role)
 	if err != nil {
 		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return
@@ -65,12 +61,12 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		utils.CustomResponseSender(w, http.StatusMethodNotAllowed, "invalid method")
 		return
 	}
-
 	var req SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+
 	if req.Name == "" || req.Email == "" || req.Password == "" {
 		utils.CustomResponseSender(w, http.StatusBadRequest, "name, email and password can't be empty ")
 		return
@@ -82,7 +78,7 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := services.GenerateJWT(user.UserID, user.Email, string(user.Role))
+	token, err := services.GenerateJWT(user.UserID, user.Email, user.Role)
 	if err != nil {
 		utils.CustomResponseSender(w, 409, "Failed to generate token")
 		return
